@@ -1,0 +1,9 @@
+## 11. Dynamic Typing Example
+  x = 5        # int
+  x = "hello"  # now str - allowed in Python
+
+## 12. Mutable vs Immutable Types
+- Immutable: int, float, complex, str, tuple, frozenset, bytes (cannot change after creation)
+- Mutable: list, dict, set, bytearray (can be modified after creation)
+
+Important: When assigning immutable types to another variable, a copy is not made automatically.ÿÿÿÿÿÿÿ

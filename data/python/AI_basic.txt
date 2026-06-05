@@ -1,0 +1,168 @@
+=== TRANSFORMERS (THEORY - SHORT) ===
+
+1. What: Neural architecture introduced in "Attention Is All You Need" (2017). Replaces RNNs/CNNs with attention mechanisms.
+
+2. Why: Enables parallel processing, captures long-range dependencies, scales with data.
+
+3. Core Components:
+   - Encoder: Processes input → representations
+   - Decoder: Generates output from encoder representations
+   - Self-Attention: Each token attends to all tokens
+   - Feed-Forward Network: Position-wise MLP
+   - Residual Connections + Layer Norm: Stabilizes training
+   - Positional Encoding: Adds sequence order information
+
+4. Types:
+   - Encoder-only (BERT): Bidirectional, classification tasks
+   - Decoder-only (GPT): Unidirectional, text generation
+   - Encoder-Decoder (T5): Seq2seq tasks (translation, summarization)
+
+5. Key Innovation: Scaled Dot-Product Attention = softmax(Q·K^T/√d_k)·V
+
+6. Limitations: O(n²) complexity, fixed context window, high inference cost.
+
+
+=== ATTENTION MECHANISM (THEORY - SHORT) ===
+
+1. What: Mechanism allowing models to dynamically focus on relevant input parts when producing output.
+
+2. Core Components:
+   - Query (Q): What we're looking for
+   - Key (K): What each input position offers
+   - Value (V): Actual content to retrieve
+
+3. How It Works:
+   - Compute scores: similarity(Q, K)
+   - Normalize with softmax → attention weights
+   - Weighted sum of values → output
+
+4. Types:
+   - Self-Attention: Q,K,V from same sequence (within input)
+   - Cross-Attention: Q from decoder, K,V from encoder (between sequences)
+   - Causal/Masked: Prevents attending to future tokens
+   - Multi-Head: Multiple attention heads in parallel (captures different patterns)
+
+5. Benefits: Direct long-range connections, interpretable weights, parallelizable.
+
+6. Limitation: Quadratic O(n²) complexity in sequence length.
+
+
+=== RETRIEVAL-AUGMENTED GENERATION (RAG) - SHORT ===
+
+1. What: Framework combining information retrieval with LLM generation. Retrieve relevant documents → Generate grounded answers.
+
+2. Why: Reduces hallucination, enables fresh knowledge, provides citations, cheaper than fine-tuning.
+
+3. Core Process:
+   - Stage 1 (Retrieval): Query → retrieve top-k relevant documents from knowledge base
+   - Stage 2 (Generation): Retrieved docs + query → LLM → answer
+
+4. Retrieval Types:
+   - Dense: Neural embeddings, semantic matching
+   - Sparse: Keyword-based (BM25), lexical matching
+   - Hybrid: Combines both
+
+5. RAG Variants:
+   - Naive: Retrieve once, then generate
+   - Iterative: Retrieve → generate → retrieve again
+   - Adaptive: Decide when to retrieve
+   - Self-RAG: LLM critiques its own retrieval
+
+6. Key Challenges: Retrieval quality, context window limits, latency, contradiction handling.
+
+
+
+=== EMBEDDINGS (THEORY - SHORT) ===
+
+1. What: Dense vector representations mapping semantic meaning to geometric space. Similar concepts = close vectors.
+
+2. Core Properties:
+   - Dense: Every dimension carries meaning
+   - Semantic proximity: Similar meanings cluster
+   - Continuous space: Vector arithmetic works (king - man + woman ≈ queen)
+
+3. Types:
+   - Word: Word2Vec, GloVe, FastText (static vectors)
+   - Contextual: BERT embeddings (different by context)
+   - Sentence: SBERT, BGE, E5, Instructor
+   - Cross-modal: CLIP (text + images)
+
+4. Similarity Measures:
+   - Cosine: Measures angle (most common)
+   - Dot Product: Magnitude-sensitive
+   - Euclidean: Geometric distance
+
+5. Training Objectives:
+   - Contrastive Learning: Pull similar pairs together, push dissimilar apart
+   - Masked Language Modeling: Predict masked tokens
+
+6. Evaluation: MTEB, BEIR benchmarks (retrieval tasks).
+
+
+
+=== VECTOR DATABASES (THEORY - SHORT) ===
+
+1. What: Databases optimized for storing, indexing, and searching high-dimensional vectors. Enables efficient similarity search.
+
+2. Why: Brute force O(n·d) is too slow. ANN indexes trade slight accuracy for 10-100x speed.
+
+3. Core Operations:
+   - Insert/update/delete vectors
+   - Similarity search (top-k nearest neighbors)
+   - Metadata filtering (pre or post search)
+   - Hybrid search (vector + keyword)
+
+4. Index Types:
+   - Flat (Brute Force): Exact, slow, small datasets
+   - IVF: Partition into clusters, search nearest clusters
+   - HNSW: Hierarchical graph, fast, high recall
+   - PQ: Compressed vectors, low memory
+   - IVF-PQ: Combination (most popular)
+
+5. Popular Vector Databases:
+   - Pinecone (managed), Weaviate, Qdrant, Milvus
+   - Chroma (lightweight), LanceDB (embedded)
+   - pgvector (PostgreSQL extension)
+
+6. Key Trade-offs: Speed vs Memory vs Recall vs Build Time.
+
+================================================================================
+
+=== PROMPT ENGINEERING (THEORY - SHORT) ===
+
+1. What: Designing and optimizing prompts to guide LLM outputs without retraining.
+
+2. Core Components:
+   - Instruction: What task to perform
+   - Context: Background/retrieved information
+   - Input: Data/question to process
+   - Output format: Desired structure
+   - Examples: Few-shot demonstrations
+
+3. Key Techniques:
+   - Zero-shot: Just instruction, no examples
+   - Few-shot: Provide examples in prompt
+   - Chain-of-Thought (CoT): Add reasoning steps
+   - Self-Consistency: Sample multiple CoTs, majority vote
+   - Tree-of-Thoughts (ToT): Explore multiple reasoning paths
+   - ReAct: Interleave reasoning + action (tool use)
+
+4. Advanced Techniques:
+   - Role prompting: "You are an expert X"
+   - Negative prompting: Tell what NOT to do
+   - System prompts: Set model behavior (API)
+   - Output formatting: JSON, markdown, structured
+   - XML tagging: Separate prompt sections with tags
+
+5. Key Parameters:
+   - Temperature (0-2): Lower = deterministic, higher = creative
+   - Top-p (nucleus sampling): Dynamic token selection
+   - Max tokens: Response length limit
+
+6. Best Practices:
+   - Be specific and clear
+   - Show examples when possible
+   - Break complex tasks into steps
+   - Use delimiters to separate parts
+   - Iterate and test systematically
+

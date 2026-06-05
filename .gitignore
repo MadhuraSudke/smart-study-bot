@@ -1,0 +1,10 @@
+venv/
+.env
+
+__pycache__/
+
+data/chroma_db/
+
+.ipynb_checkpoints/
+
+*.pyc

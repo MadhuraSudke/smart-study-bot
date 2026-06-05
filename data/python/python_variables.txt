@@ -1,0 +1,81 @@
+PYTHON VARIABLES 
+
+## 1. What is a Variable?
+A variable is a named location in memory used to store data. In Python, variables are dynamically typed (no explicit declaration required).
+
+## 2. Variable Naming Rules
+- Must start with a letter (a-z, A-Z) or underscore (_)
+- Cannot start with a digit
+- Can contain letters, digits, and underscores only
+- Case-sensitive (age, Age, AGE are different)
+- Cannot use Python keywords (if, else, for, while, class, etc.)
+
+## 3. Variable Assignment
+Syntax: variable_name = value
+Examples:
+  x = 10
+  name = "Alice"
+  is_valid = True
+
+## 4. Multiple Assignment
+  a, b, c = 1, 2, 3        # assign multiple variables at once
+  x = y = z = 0             # assign same value to multiple variables
+
+## 5. Data Types (Built-in)
+- Numeric: int, float, complex
+- Text: str
+- Sequence: list, tuple, range
+- Mapping: dict
+- Set: set, frozenset
+- Boolean: bool
+- Binary: bytes, bytearray, memoryview
+- None: NoneType
+
+## 6. Type Checking & Conversion
+- type(var) → returns type of variable
+- isinstance(var, type) → checks if var is of given type
+- Type conversion functions: int(), float(), str(), list(), tuple(), dict(), set()
+
+## 7. Variable Scope
+- Local: defined inside a function, accessible only within that function
+- Global: defined outside any function, accessible throughout the module
+- Nonlocal: used in nested functions to modify variable in enclosing scope
+
+## 8. Global Keyword
+Use 'global' to modify a global variable inside a function:
+  count = 0
+  def increment():
+      global count
+      count += 1
+
+## 9. Constants (Convention)
+There are no true constants in Python. By convention, use ALL_CAPS names:
+  PI = 3.14159
+  MAX_SIZE = 100
+
+## 10. Deleting Variables
+  del variable_name  # removes reference, may trigger garbage collection
+
+## 11. Dynamic Typing Example
+  x = 5        # int
+  x = "hello"  # now str - allowed in Python
+
+## 12. Mutable vs Immutable Types
+- Immutable: int, float, complex, str, tuple, frozenset, bytes (cannot change after creation)
+- Mutable: list, dict, set, bytearray (can be modified after creation)
+
+Important: When assigning immutable types to another variable, a copy is not made automatically.
+
+## 13. id() Function
+Returns unique identifier (memory address) of an object:
+  a = [1,2,3]
+  b = a
+  id(a) == id(b)  # True (same object)
+
+## 14. Type Hints (Python 3.5+)
+Optional, for better code readability and IDE support:
+  name: str = "Alice"
+  age: int = 25
+  def greet(name: str) -> str:
+      return f"Hello {name}"
+
