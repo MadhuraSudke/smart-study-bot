@@ -30,13 +30,8 @@ ollama_llm = ChatOllama(
     model="llama3.2"
 )
 
-CURRENT_MODEL = "ollama"
 
 
-if CURRENT_MODEL == "gemini":
-    llm = gemini_llm
-else:
-    llm = ollama_llm
 
 # conversation memory 
 history =[]
@@ -58,7 +53,7 @@ def get_recent_history():
    return conversation_text
 
 
-def rewrite_query(query, conversation_history):
+def rewrite_query(query, conversation_history, llm):
 
     rewrite_prompt = f"""
     Conversation History:
@@ -77,9 +72,12 @@ def rewrite_query(query, conversation_history):
     return response.content.strip()
 
 # ask user for question , MAIN CHAT LOOP 
-def ask_question(query):
+def ask_question(query, model_name="ollama"):
       # retiieval context 
-                                          
+    if model_name == "gemini":
+      llm = gemini_llm
+    else:
+      llm = ollama_llm                                    
     # Retrival
 # previously similarity_search returned document as object
 # now it will return (document, score)
@@ -89,7 +87,8 @@ def ask_question(query):
 
     rewritten_query = rewrite_query(
     query,
-    conversation_history
+    conversation_history,
+    llm
     )
 
 
@@ -107,7 +106,12 @@ def ask_question(query):
             "unknown source"
               )
         )
-       
+    filtered_results = []
+
+    for doc, score in results:
+
+        if score < 1.0:
+          filtered_results.append((doc, score))  
 
 # tuple unpacking , lower the score the better the result 
      
@@ -185,17 +189,3 @@ def ask_question(query):
             "rewritten_query": " ",
             "sources" : []
         }
-for msg in history:
-         print(msg)
-
-result1 = ask_question(
-    "What is a transformer?"
-)
-
-print(result1["answer"])
-
-result2 = ask_question(
-    "Who introduced it?"
-)
-
-print(result2["answer"])
