@@ -30,10 +30,8 @@ ollama_llm = ChatOllama(
     model="llama3.2"
 )
 
-
-
-
 # conversation memory 
+
 history =[]
 
 MAX_HISTORY =10
@@ -45,6 +43,7 @@ def get_recent_history():
    recent_messages = history[-MAX_HISTORY:]
 
    conversation_text =" "
+
    for msg in recent_messages:
       conversation_text += (
          f"{msg['role'].capitalize()}:"
@@ -52,6 +51,7 @@ def get_recent_history():
         )
    return conversation_text
 
+ # query Rewrting 
 
 def rewrite_query(query, conversation_history, llm):
 
@@ -70,6 +70,30 @@ def rewrite_query(query, conversation_history, llm):
     response = llm.invoke(rewrite_prompt)
 
     return response.content.strip()
+def retrieve_context(query, k=5):
+   
+   results = db.similarity_search_with_score(
+      query,
+      k=k
+   )
+
+
+   context = "\n\n".join(
+      doc.page_content
+      for doc, score in results
+   )
+   sources=[]
+  # meta data key
+   for doc , score in results:
+      source = doc.metadata.get(
+      "source",
+      "unknown source"
+    )
+
+      if source not in sources:
+         sources.append(source) 
+   return context, sources 
+      
 
 # ask user for question , MAIN CHAT LOOP 
 def ask_question(query, model_name="ollama"):
@@ -88,72 +112,48 @@ def ask_question(query, model_name="ollama"):
     rewritten_query = rewrite_query(
     query,
     conversation_history,
-    llm
+    ollama_llm
     )
 
-
-    results = db.similarity_search_with_score(
-    rewritten_query,
-    k=3
+    context, sources = retrieve_context(
+       rewritten_query,
+        k=3
     )
 
-    sources = []
+    if not context.strip():
+       return {
+          "answer":
+        "I could not find that information in the provided documents.",
+        "rewritten_query": rewritten_query,
+        "sources": []
+    
+       }
+    prompt = f"""
+          You are a study assistant.
 
-    for doc, score in results:
-       sources.append(
-        doc.metadata.get(
-            "source",
-            "unknown source"
-              )
-        )
-    filtered_results = []
+          STRICT RULES:
 
-    for doc, score in results:
+          1. Use ONLY the information in the provided context.
+          2. Do NOT use your own knowledge.
+          3. If the answer cannot be found in the context, reply exactly:
 
-        if score < 1.0:
-          filtered_results.append((doc, score))  
+          I could not find that information in the provided documents.
+          
+        conversation History :
+        {conversation_history}
+         
+        context :
+        {context}
+        
+        question:
+        {query}
+        
+        Answer :
+          """
+
 
 # tuple unpacking , lower the score the better the result 
      
-     
-
-# it's for showing sources 
-
-    # type is list[tuple[document,float]]
-
-# build context 
-    context ="\n\n".join(
-     doc.page_content 
-     for doc, score in results 
-     )
-   
-# get memory
-    conversation_history = get_recent_history()
-
-    # build prompt
-
-    prompt = f"""
-        You are a helpful study assistant.
-
-        use the conversation histroy when relevent.
-
-        Answer the question using ONLY the provided context.
-
-        If the answer is not present in the context,
-        say "I could not find that information in the provided documents."
-
-        conversation Histroy:
-        {conversation_history}
-
-        Context:
-        {context}
-
-        Question:
-        {query}
-
-        Answer:
-        """
-
 
     # call gemini
     try:
@@ -184,8 +184,123 @@ def ask_question(query, model_name="ollama"):
          
            
     except Exception as e:
+
+     if "RESOURCE_EXHAUSTED" in str(e):
+
         return {
-            "answer": f"Error: {str(e)}",
-            "rewritten_query": " ",
-            "sources" : []
+            "answer":
+            "Gemini quota exceeded. Please switch to Ollama or wait for quota reset.",
+            "rewritten_query": "",
+            "sources": []
         }
+
+     return {
+        "answer": f"Error: {str(e)}",
+        "rewritten_query": "",
+        "sources": []
+       }
+    
+
+# quiz generator
+def generate_quiz (topic,model_name="gemini"):
+ llm= gemini_llm if model_name =="gemini" else ollama_llm
+
+ context,sources = retrieve_context(
+   topic, 
+   k=5
+   )
+
+ prompt = f"""
+   you are a study assitant.
+
+    use the context below to create
+    10 multiple-choice questions.property
+    for each question include :
+ 
+    Question 
+    A)
+    B)
+    C)
+    D)
+
+    Correct Answer 
+    Explanation
+    context:
+    {context}
+    """
+
+ response = llm.invoke(prompt)
+ return{
+   "quiz": response.content,
+   "sources": sources
+   }
+
+#Flashcard Generator 
+def generate_flashcards(topic,model_name="gemini"):
+ 
+   llm = gemini_llm if model_name == "gemini"else ollama_llm
+      
+   context,sources = retrieve_context(
+       topic, 
+       k=5
+    )
+
+
+   prompt = f"""
+        create 20 study flashcards.
+
+           format:
+           Question:
+            ...
+           Answer:
+            ...
+
+        context:
+         {context}
+           """
+    
+   response = llm.invoke(prompt)
+
+   return {
+        "flashcards" : response.content,
+         "sources": sources
+          }
+
+# summmary generator 
+def generate_summary(topic, model_name="gemini"):
+   llm = gemini_llm if model_name =="gemini"else ollama_llm
+      
+
+   context, sources = retrieve_context(
+   topic ,
+   k=5
+    )
+
+   prompt = f"""
+   create study guide 
+
+    create a study guide .
+    Include :
+    1. key conepts
+    2. definitions
+    3. Important points
+    4. Exam tips
+
+    context :
+     {context}
+    """
+
+   response = llm.invoke(prompt)
+
+   return{
+   "summary": response.content,
+   "sources": sources
+    }
+
+# temp 
+result = ask_question(
+    "What is machine learning?",
+    model_name="gemini"
+)
+
+print(result)
